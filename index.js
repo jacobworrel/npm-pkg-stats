@@ -16,16 +16,12 @@ const {
 } = require('./util');
 
 async function getStats (package) {
-  const repoUrl = await getRepoUrl(package);
-  const owner = R.pipe(
-    parseRepoUrl,
-    R.prop('owner')
-  )(repoUrl);
+  const [ bundlephobiaData, npmDownloadData ] = await Promise.all([
+    fetchBundlephobiaData(package),
+    fetchNpmDownload(package),
+  ]);
 
-  const isRepoUrlNil = R.isNil(repoUrl);
-
-  const bundlephobiaData = await fetchBundlephobiaData(package);
-  const { downloads: weeklyNpmDownloads } = await fetchNpmDownload(package);
+  const weeklyNpmDownloads = R.prop('downloads', npmDownloadData);
 
   const npmStats = {
     dependencies: R.prop('dependencyCount', bundlephobiaData),
@@ -37,11 +33,17 @@ async function getStats (package) {
     'weekly npm downloads': weeklyNpmDownloads,
   };
 
-  if (isRepoUrlNil) {
+  const repoUrl = await getRepoUrl(package);
+  if (R.isNil(repoUrl)) {
     console.warn(`Requested package has no repository url in package.json so we were unable to gather stats from GitHub.`);
     console.table(npmStats);
     return;
   }
+
+  const owner = R.pipe(
+    parseRepoUrl,
+    R.prop('owner')
+  )(repoUrl);
 
   const githubData = await fetchGithubData(package, owner);
 
