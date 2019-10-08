@@ -22,6 +22,11 @@ const {
  */
 
 async function getStats (package, token) {
+  if (R.isNil(token)) {
+    console.error('No NPM_PKG_STATS_TOKEN found in your environment variables. Please follow the installation instructions.');
+    return;
+  }
+
   const [ bundlephobiaData, npmDownloadData ] = await Promise.all([
     fetchBundlephobiaData(package),
     fetchNpmDownload(package),
@@ -83,4 +88,4 @@ async function getStats (package, token) {
 const [ package ] = R.drop(2, process.argv);
 const token = process.env.NPM_PKG_STATS_TOKEN;
 
-getStats(package, token);
+getStats(package, token).catch(err => console.error(err));
