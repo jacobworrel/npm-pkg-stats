@@ -18,7 +18,7 @@ const {
 /**
  * TODO
  * 1) format numbers
- * 2) write readme
+ * 2) add descriptions to stats in readme
  */
 
 async function getStats (package, token) {

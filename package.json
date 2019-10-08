@@ -2,13 +2,17 @@
   "name": "npm-pkg-stats",
   "bin": "./index.js",
   "version": "1.0.0",
-  "description": "",
+  "description": "A CLI tool for gathering stats on NPM packages.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jacobworrel/npm-pkg-stats.git"
+  },
+  "author": "Jacob Worrel",
   "license": "ISC",
   "dependencies": {
     "dayjs": "^1.8.16",
