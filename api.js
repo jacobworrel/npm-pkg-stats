@@ -36,13 +36,12 @@ const makeQuery = (package, owner) => `{
   }
 }`;
 
-const graphQLClient = new GraphQLClient('https://api.github.com/graphql', {
-  headers: {
-    authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-  },
-});
-
-async function fetchGithubData (package, owner) {
+async function fetchGithubData (package, owner, token) {
+  const graphQLClient = new GraphQLClient('https://api.github.com/graphql', {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  });
   return await graphQLClient.request(makeQuery(package, owner));
 }
 

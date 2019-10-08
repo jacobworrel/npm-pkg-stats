@@ -1,4 +1,4 @@
-require('dotenv').config({ path: './variables.env' });
+#!/usr/bin/env node
 
 const R = require('ramda');
 const dayjs = require('dayjs');
@@ -15,7 +15,13 @@ const {
   formatSize,
 } = require('./util');
 
-async function getStats (package) {
+/**
+ * TODO
+ * 1) format numbers
+ * 2) write readme
+ */
+
+async function getStats (package, token) {
   const [ bundlephobiaData, npmDownloadData ] = await Promise.all([
     fetchBundlephobiaData(package),
     fetchNpmDownload(package),
@@ -45,7 +51,7 @@ async function getStats (package) {
     R.prop('owner')
   )(repoUrl);
 
-  const githubData = await fetchGithubData(package, owner);
+  const githubData = await fetchGithubData(package, owner, token);
 
   const openIssues = R.path(['repository', 'openIssues', 'totalCount'], githubData);
   const closedIssues = R.path(['repository', 'closedIssues', 'totalCount'], githubData);
@@ -75,4 +81,6 @@ async function getStats (package) {
   })
 }
 const [ package ] = R.drop(2, process.argv);
-getStats(package);
+const token = process.env.NPM_PKG_STATS_TOKEN;
+
+getStats(package, token);

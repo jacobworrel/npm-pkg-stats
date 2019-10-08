@@ -1,5 +1,6 @@
 {
-  "name": "open-source-stats-cli",
+  "name": "npm-pkg-stats",
+  "bin": "./index.js",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "dayjs": "^1.8.16",
-    "dotenv": "^8.1.0",
     "get-repository-url": "^2.0.0",
     "graphql-request": "^1.8.2",
     "ramda": "^0.26.1"
