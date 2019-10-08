@@ -15,9 +15,11 @@ Now that you've created your token, just install `npm-pkg-stats` globally:
 
 `npm install --global npm-pkg-stats`
 
-And you should be good to go!
+And you're good to go!
 
-`npm-pkg-stats react` prints the following stats to the console:
+`npm-pkg-stats package_name`
+
+For example, `npm-pkg-stats react` prints the following stats to the console:
 
 ```
 ┌──────────────────────────┬───────────────┐

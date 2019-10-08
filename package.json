@@ -2,7 +2,7 @@
   "name": "npm-pkg-stats",
   "bin": "./index.js",
   "version": "1.0.0",
-  "description": "A CLI tool for gathering stats on NPM packages.",
+  "description": "A CLI tool that gets stats on NPM packages.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
