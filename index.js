@@ -52,12 +52,15 @@ async function getStats (package, token) {
     return;
   }
 
-  const owner = R.pipe(
+  const {
+    owner,
+    name: githubPackageName,
+  } = R.pipe(
     parseRepoUrl,
-    R.prop('owner')
+    R.pick(['owner', 'name'])
   )(repoUrl);
 
-  const githubData = await fetchGithubData(package, owner, token);
+  const githubData = await fetchGithubData(githubPackageName, owner, token);
 
   const openIssues = R.path(['repository', 'openIssues', 'totalCount'], githubData);
   const closedIssues = R.path(['repository', 'closedIssues', 'totalCount'], githubData);
