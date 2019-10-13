@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-const R = require('ramda');
 const dayjs = require('dayjs');
 const getRepoUrl = require('get-repository-url');
 const parseRepoUrl = require('parse-github-url');
+const R = require('ramda');
 
 const {
   fetchBundlephobiaData,
@@ -11,14 +11,19 @@ const {
   fetchNpmDownload,
 } = require('./api');
 const {
-  calcPercentage,
+  calcRatio,
+  formatNumber,
+  formatPercentage,
   formatSize,
 } = require('./util');
 
 /**
  * TODO
- * 1) format numbers
- * 2) add descriptions to stats in readme
+ * - handle no bundlephobia data case (test with 'npm-pkg-stats node')
+ * - prettify console output
+ *  - use better table logging package (ie. cli-table, table etc...)
+ *  - add banner (look into figlet, chalk etc..)
+ * - add support for multiple packages (ie. comparison mode)
  */
 
 async function getStats (package, token) {
@@ -32,11 +37,17 @@ async function getStats (package, token) {
     fetchNpmDownload(package),
   ]);
 
-  const weeklyNpmDownloads = R.prop('downloads', npmDownloadData);
+  const weeklyNpmDownloads = R.pipe(
+    R.prop('downloads'),
+    formatNumber
+  )(npmDownloadData);
 
   const npmStats = {
     version: R.prop('version', bundlephobiaData),
-    dependencies: R.prop('dependencyCount', bundlephobiaData),
+    dependencies: R.pipe(
+      R.prop('dependencyCount'),
+      formatNumber
+    )(bundlephobiaData),
     'gzip size': R.pipe(
       R.prop('gzip'),
       formatSize,
@@ -68,13 +79,16 @@ async function getStats (package, token) {
   const closedPRs = R.path(['repository', 'closedPRs', 'totalCount'], githubData);
 
   const githubStats = {
-    stars: R.path(['repository', 'stargazers', 'totalCount'], githubData),
-    'open PRs': openPRs,
-    'open PRs (% of total)': calcPercentage(openPRs, closedPRs),
-    'closed PRs': closedPRs,
-    'open issues': openIssues,
-    'open issues (% of total)': calcPercentage(openIssues, closedIssues),
-    'closed issues': closedIssues,
+    stars: R.pipe(
+      R.path(['repository', 'stargazers', 'totalCount']),
+      formatNumber
+    )(githubData),
+    'open PRs': formatNumber(openPRs),
+    'open PRs (% of total)': formatPercentage(calcRatio(openPRs, closedPRs)),
+    'closed PRs': formatNumber(closedPRs),
+    'open issues': formatNumber(openIssues),
+    'open issues (% of total)': formatPercentage(calcRatio(openIssues, closedIssues)),
+    'closed issues': formatNumber(closedIssues),
     'last release': R.pipe(
       R.path(['repository', 'releases', 'nodes']),
       R.head,

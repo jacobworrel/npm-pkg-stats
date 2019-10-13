@@ -25,16 +25,17 @@ For example, `npm-pkg-stats react` prints the following stats to the console:
 ┌──────────────────────────┬───────────────┐
 │         (index)          │    Values     │
 ├──────────────────────────┼───────────────┤
-│       dependencies       │       3       │
+│         version          │   '16.10.2'   │
+│       dependencies       │      '3'      │
 │        gzip size         │   '2.6 kB'    │
-│   weekly npm downloads   │    6005499    │
-│          stars           │    137342     │
-│         open PRs         │      212      │
-│  open PRs (% of total)   │     8.05      │
-│        closed PRs        │     2421      │
-│       open issues        │      622      │
-│ open issues (% of total) │      7.6      │
-│      closed issues       │     7559      │
+│   weekly npm downloads   │  '6,007,165'  │
+│          stars           │   '137,662'   │
+│         open PRs         │     '223'     │
+│  open PRs (% of total)   │    '8.43%'    │
+│        closed PRs        │    '2,422'    │
+│       open issues        │     '630'     │
+│ open issues (% of total) │    '7.68%'    │
+│      closed issues       │    '7,577'    │
 │       last release       │ '2019-10-03'  │
 │         license          │ 'MIT License' │
 └──────────────────────────┴───────────────┘

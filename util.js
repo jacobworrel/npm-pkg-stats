@@ -1,9 +1,17 @@
+const numeral = require('numeral');
 const R = require('ramda');
 
-function calcPercentage (open, closed) {
+function calcRatio (open, closed) {
   const total = R.add(open, closed);
-  const percentage = open / total * 100;
-  return Number(percentage.toFixed(2));
+  return open / total;
+}
+
+function formatNumber (x) {
+  return numeral(x).format('0,0');
+}
+
+function formatPercentage (x) {
+  return numeral(x).format('0.00%');
 }
 
 // copied from bundlephobia source
@@ -24,6 +32,8 @@ function formatSize (value) {
 }
 
 module.exports = {
-  calcPercentage,
+  formatNumber,
+  formatPercentage,
+  calcRatio,
   formatSize,
 };
