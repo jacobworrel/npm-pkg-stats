@@ -35,6 +35,7 @@ async function getStats (package, token) {
   const weeklyNpmDownloads = R.prop('downloads', npmDownloadData);
 
   const npmStats = {
+    version: R.prop('version', bundlephobiaData),
     dependencies: R.prop('dependencyCount', bundlephobiaData),
     'gzip size': R.pipe(
       R.prop('gzip'),

@@ -46,6 +46,7 @@ If you prefer to use `npx`:
 
 ## Stats
 
+#### version | source: bundlephobia (via npm)
 #### dependencies | source: bundlephobia (via npm)
 #### gzip size | source: bundlephobia (via npm)
 #### weekly npm downloads | source: npm
