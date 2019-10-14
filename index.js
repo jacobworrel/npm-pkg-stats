@@ -17,9 +17,10 @@ const {
   formatSize,
 } = require('./util');
 
+const nilValue = '--';
+
 /**
  * TODO
- * - handle no bundlephobia data case (test with 'npm-pkg-stats node')
  * - prettify console output
  *  - use better table logging package (ie. cli-table, table etc...)
  *  - add banner (look into figlet, chalk etc..)
@@ -43,15 +44,24 @@ async function getStats (package, token) {
   )(npmDownloadData);
 
   const npmStats = {
-    version: R.prop('version', bundlephobiaData),
+    version: R.pipe(
+      R.prop('version'),
+      R.defaultTo(nilValue)
+    )(bundlephobiaData),
     dependencies: R.pipe(
       R.prop('dependencyCount'),
       formatNumber
     )(bundlephobiaData),
     'gzip size': R.pipe(
       R.prop('gzip'),
-      formatSize,
-      ({ size, unit }) => `${parseFloat(size).toFixed(1)} ${unit}`
+      R.ifElse(
+        R.isNil,
+        R.always(nilValue),
+        R.pipe(
+          formatSize,
+          ({ size, unit }) => `${parseFloat(size).toFixed(1)} ${unit}`
+        )
+      )
     )(bundlephobiaData),
     'weekly npm downloads': weeklyNpmDownloads,
   };
@@ -95,7 +105,10 @@ async function getStats (package, token) {
       R.prop('publishedAt'),
       date => dayjs(date).format('YYYY-MM-DD')
     )(githubData),
-    license: R.path(['repository', 'licenseInfo', 'name'], githubData),
+    license: R.pipe(
+      R.path(['repository', 'licenseInfo', 'name']),
+      R.defaultTo(nilValue)
+    )(githubData),
   };
 
   console.table({
