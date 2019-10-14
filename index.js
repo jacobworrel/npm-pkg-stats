@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
+const chalk = require('chalk');
 const dayjs = require('dayjs');
+const figlet = require('figlet');
 const getRepoUrl = require('get-repository-url');
+const ora = require('ora');
 const parseRepoUrl = require('parse-github-url');
 const R = require('ramda');
 
@@ -111,12 +114,24 @@ async function getStats (package, token) {
     )(githubData),
   };
 
+  console.log('\n');
   console.table({
     ...npmStats,
     ...githubStats,
-  })
+  });
 }
 const [ package ] = R.drop(2, process.argv);
 const token = process.env.NPM_PKG_STATS_TOKEN;
 
-getStats(package, token).catch(err => console.error(err));
+console.log(chalk.magenta(figlet.textSync('npm pkg stats', { font: 'Big' })));
+
+const spinner = ora({
+  text: 'Getting stats...',
+  color: 'magenta',
+});
+
+spinner.start();
+
+getStats(package, token)
+.then(() => spinner.stop())
+.catch(err => console.error(err));
