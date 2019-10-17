@@ -7,6 +7,7 @@ const getRepoUrl = require('get-repository-url');
 const ora = require('ora');
 const parseRepoUrl = require('parse-github-url');
 const R = require('ramda');
+const Table = require('cli-table');
 
 const {
   fetchBundlephobiaData,
@@ -24,11 +25,31 @@ const nilValue = '--';
 
 /**
  * TODO
- * - prettify console output
- *  - use better table logging package (ie. cli-table, table etc...)
- *  - add banner (look into figlet, chalk etc..)
  * - add support for multiple packages (ie. comparison mode)
  */
+
+function makeVerticalTable ({
+  githubStats,
+  npmStats,
+}) {
+  const stats = {
+    ...npmStats,
+    ...githubStats,
+  };
+  const table = new Table({
+    style: {
+      head: ['magenta'],
+    },
+    head: ['package', package],
+  });
+  const rows = R.pipe(
+    R.keys,
+    R.map(key => ({ [key]: stats[key] }))
+  )(stats);
+  table.push(...rows);
+
+  return table;
+}
 
 async function getStats (package, token) {
   if (R.isNil(token)) {
@@ -72,7 +93,7 @@ async function getStats (package, token) {
   const repoUrl = await getRepoUrl(package);
   if (R.isNil(repoUrl)) {
     console.warn(`Requested package has no repository url in package.json so we were unable to gather stats from GitHub.`);
-    console.table(npmStats);
+    console.log(makeVerticalTable({ npmStats }).toString());
     return;
   }
 
@@ -92,7 +113,7 @@ async function getStats (package, token) {
   const closedPRs = R.path(['repository', 'closedPRs', 'totalCount'], githubData);
 
   const githubStats = {
-    stars: R.pipe(
+    'github stars': R.pipe(
       R.path(['repository', 'stargazers', 'totalCount']),
       formatNumber
     )(githubData),
@@ -115,10 +136,7 @@ async function getStats (package, token) {
   };
 
   console.log('\n');
-  console.table({
-    ...npmStats,
-    ...githubStats,
-  });
+  console.log(makeVerticalTable({ npmStats, githubStats }).toString());
 }
 const [ package ] = R.drop(2, process.argv);
 const token = process.env.NPM_PKG_STATS_TOKEN;
