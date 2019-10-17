@@ -22,23 +22,35 @@ And you're good to go!
 For example, `npm-pkg-stats react` prints the following stats to the console:
 
 ```
-┌──────────────────────────┬───────────────┐
-│         (index)          │    Values     │
-├──────────────────────────┼───────────────┤
-│         version          │   '16.10.2'   │
-│       dependencies       │      '3'      │
-│        gzip size         │   '2.6 kB'    │
-│   weekly npm downloads   │  '6,007,165'  │
-│          stars           │   '137,662'   │
-│         open PRs         │     '223'     │
-│  open PRs (% of total)   │    '8.43%'    │
-│        closed PRs        │    '2,422'    │
-│       open issues        │     '630'     │
-│ open issues (% of total) │    '7.68%'    │
-│      closed issues       │    '7,577'    │
-│       last release       │ '2019-10-03'  │
-│         license          │ 'MIT License' │
-└──────────────────────────┴───────────────┘
+┌──────────────────────────┬─────────────┐
+│ package                  │ react       │
+├──────────────────────────┼─────────────┤
+│ version                  │ 16.10.2     │
+├──────────────────────────┼─────────────┤
+│ dependencies             │ 3           │
+├──────────────────────────┼─────────────┤
+│ gzip size                │ 2.6 kB      │
+├──────────────────────────┼─────────────┤
+│ weekly npm downloads     │ 5,878,791   │
+├──────────────────────────┼─────────────┤
+│ github stars             │ 137,853     │
+├──────────────────────────┼─────────────┤
+│ open PRs                 │ 233         │
+├──────────────────────────┼─────────────┤
+│ open PRs (% of total)    │ 8.77%       │
+├──────────────────────────┼─────────────┤
+│ closed PRs               │ 2,423       │
+├──────────────────────────┼─────────────┤
+│ open issues              │ 637         │
+├──────────────────────────┼─────────────┤
+│ open issues (% of total) │ 7.74%       │
+├──────────────────────────┼─────────────┤
+│ closed issues            │ 7,588       │
+├──────────────────────────┼─────────────┤
+│ last release             │ 2019-10-03  │
+├──────────────────────────┼─────────────┤
+│ license                  │ MIT License │
+└──────────────────────────┴─────────────┘
 ```
 
 If you prefer to use `npx`:
@@ -51,7 +63,7 @@ If you prefer to use `npx`:
 #### dependencies | source: bundlephobia (via npm)
 #### gzip size | source: bundlephobia (via npm)
 #### weekly npm downloads | source: npm
-#### stars | source: github
+#### github stars | source: github
 #### open PRs | source: github
 #### open PRs (% of total) | source: github
 #### closed PRs | source: github
