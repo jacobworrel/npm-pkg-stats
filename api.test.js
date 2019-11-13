@@ -72,4 +72,10 @@ describe(`api`, () => {
       spy.mockRestore();
     });
   });
+
+  describe(`makeQuery`, () => {
+    it(`should`, () => {
+      expect(api.makeQuery('react', 'facebook')).toMatchSnapshot();
+    });
+  });
 });

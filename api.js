@@ -184,4 +184,5 @@ async function fetchNpmDownload (pkg) {
 module.exports = {
   getStats,
   makeNpmStats,
+  makeQuery,
 };

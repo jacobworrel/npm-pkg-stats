@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`api makeQuery should 1`] = `
+"{
+  repository(name: \\"react\\", owner: \\"facebook\\"){
+    openIssues: issues(filterBy: { states: [OPEN]}) {
+      totalCount
+    }
+    
+    closedIssues: issues(filterBy: { states: [CLOSED]}) {
+      totalCount
+    }
+    
+    openPRs: pullRequests(states:[OPEN]) {
+      totalCount
+    }
+    
+    closedPRs: pullRequests(states:[CLOSED]) {
+      totalCount
+    }
+    
+    stargazers {
+      totalCount
+    }
+    
+    licenseInfo {
+      name
+    }
+    
+    releases(last: 1) {
+      nodes {
+        publishedAt
+        name
+      }
+    }
+    
+  }
+}"
+`;
