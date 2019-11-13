@@ -8,7 +8,11 @@ const util = require('./util');
 
 const nilValue = '--';
 
-const makeQuery = (pkg, owner) => `{
+const api = {};
+
+api.getRepoUrl = async pkg => await getRepoUrl(pkg);
+
+api.makeQuery = (pkg, owner) => `{
   repository(name: "${pkg}", owner: "${owner}"){
     openIssues: issues(filterBy: { states: [OPEN]}) {
       totalCount
@@ -44,7 +48,11 @@ const makeQuery = (pkg, owner) => `{
   }
 }`;
 
-function makeVerticalTable({ githubStats, npmStats, pkg }) {
+api.makeVerticalTable = function makeVerticalTable({
+  githubStats,
+  npmStats,
+  pkg,
+}) {
   const stats = {
     ...npmStats,
     ...githubStats,
@@ -62,9 +70,12 @@ function makeVerticalTable({ githubStats, npmStats, pkg }) {
   table.push(...rows);
 
   return table;
-}
+};
 
-function makeNpmStats({ bundlephobiaData, npmDownloadData }) {
+api.makeNpmStats = function makeNpmStats({
+  bundlephobiaData,
+  npmDownloadData,
+}) {
   return {
     version: R.pipe(R.prop('version'), R.defaultTo(nilValue))(bundlephobiaData),
     dependencies: R.pipe(
@@ -87,9 +98,9 @@ function makeNpmStats({ bundlephobiaData, npmDownloadData }) {
       util.formatNumber,
     )(npmDownloadData),
   };
-}
+};
 
-function makeGithubStats({ githubData }) {
+api.makeGithubStats = function makeGithubStats({ githubData }) {
   const openIssues = R.path(
     ['repository', 'openIssues', 'totalCount'],
     githubData,
@@ -130,9 +141,9 @@ function makeGithubStats({ githubData }) {
       R.defaultTo(nilValue),
     )(githubData),
   };
-}
+};
 
-async function getStats(pkg, token) {
+api.getStats = async function getStats(pkg, token) {
   if (R.isNil(token)) {
     console.error(
       'No NPM_PKG_STATS_TOKEN found in your environment variables. Please follow the installation instructions.',
@@ -141,18 +152,18 @@ async function getStats(pkg, token) {
   }
 
   const [bundlephobiaData, npmDownloadData] = await Promise.all([
-    fetchBundlephobiaData(pkg),
-    fetchNpmDownload(pkg),
+    api.fetchBundlephobiaData(pkg),
+    api.fetchNpmDownload(pkg),
   ]);
 
-  const npmStats = makeNpmStats({ bundlephobiaData, npmDownloadData });
+  const npmStats = api.makeNpmStats({ bundlephobiaData, npmDownloadData });
 
-  const repoUrl = await getRepoUrl(pkg);
+  const repoUrl = await api.getRepoUrl(pkg);
   if (R.isNil(repoUrl)) {
     console.warn(
       `Requested package has no repository url in package.json so we were unable to gather stats from GitHub.`,
     );
-    console.log(makeVerticalTable({ npmStats, pkg }).toString());
+    console.log(api.makeVerticalTable({ npmStats, pkg }).toString());
     return;
   }
 
@@ -161,37 +172,33 @@ async function getStats(pkg, token) {
     R.pick(['owner', 'name']),
   )(repoUrl);
 
-  const githubData = await fetchGithubData(githubPackageName, owner, token);
+  const githubData = await api.fetchGithubData(githubPackageName, owner, token);
 
-  const githubStats = makeGithubStats({ githubData });
+  const githubStats = api.makeGithubStats({ githubData });
 
   console.log('\n');
-  console.log(makeVerticalTable({ npmStats, githubStats, pkg }).toString());
-}
+  console.log(api.makeVerticalTable({ npmStats, githubStats, pkg }).toString());
+};
 
-async function fetchGithubData(pkg, owner, token) {
+api.fetchGithubData = async function fetchGithubData(pkg, owner, token) {
   const graphQLClient = new GraphQLClient('https://api.github.com/graphql', {
     headers: {
       authorization: `Bearer ${token}`,
     },
   });
-  return await graphQLClient.request(makeQuery(pkg, owner));
-}
+  return await graphQLClient.request(api.makeQuery(pkg, owner));
+};
 
-async function fetchBundlephobiaData(pkg) {
+api.fetchBundlephobiaData = async function fetchBundlephobiaData(pkg) {
   const resp = await fetch(`https://bundlephobia.com/api/size?package=${pkg}`);
   return await resp.json();
-}
+};
 
-async function fetchNpmDownload(pkg) {
+api.fetchNpmDownload = async function fetchNpmDownload(pkg) {
   const resp = await fetch(
     `https://api.npmjs.org/downloads/point/last-week/${pkg}`,
   );
   return await resp.json();
-}
-
-module.exports = {
-  getStats,
-  makeNpmStats,
-  makeQuery,
 };
+
+module.exports = api;

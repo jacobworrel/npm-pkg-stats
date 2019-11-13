@@ -8,6 +8,7 @@
     "lint": "eslint . --ext .js",
     "test": "jest",
     "test:watch": "jest --watchAll",
+    "test:cover": "jest --coverage",
     "start": "node index.js"
   },
   "repository": {

@@ -3,7 +3,72 @@ const util = require('./util');
 const R = require('ramda');
 
 describe(`api`, () => {
+  describe(`getStats`, () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    it(`should log error msg to console when token is nil`, async () => {
+      const spy = jest
+        .spyOn(global.console, 'error')
+        .mockImplementation(() => {});
+      await api.getStats('react');
+
+      expect(spy).toHaveBeenCalledWith(
+        'No NPM_PKG_STATS_TOKEN found in your environment variables. Please follow the installation instructions.',
+      );
+    });
+
+    it(`should only log npm stats when no repository url exists in package.json`, async () => {
+      const bundlephobiaData = {
+        version: 1,
+        dependencyCount: 1,
+        gzip: 1,
+      };
+
+      const npmDownloadData = {
+        downloads: 1,
+      };
+
+      jest
+        .spyOn(api, 'fetchBundlephobiaData')
+        .mockImplementation(R.always(bundlephobiaData));
+
+      jest
+        .spyOn(api, 'fetchNpmDownload')
+        .mockImplementation(R.always(npmDownloadData));
+
+      jest.spyOn(api, 'getRepoUrl').mockImplementation(R.always(undefined));
+
+      const consoleWarn = jest
+        .spyOn(global.console, 'warn')
+        .mockImplementation(() => {});
+
+      const consoleLog = jest
+        .spyOn(global.console, 'log')
+        .mockImplementation(() => {});
+
+      const makeVerticalTable = jest.spyOn(api, 'makeVerticalTable');
+
+      await api.getStats('react', 'token');
+
+      expect(consoleWarn).toHaveBeenCalledWith(
+        'Requested package has no repository url in package.json so we were unable to gather stats from GitHub.',
+      );
+      expect(consoleLog).toHaveBeenCalledTimes(1);
+      expect(makeVerticalTable).toHaveBeenCalledWith({
+        npmStats: {
+          dependencies: '1',
+          'gzip size': '1.0 B',
+          version: 1,
+          'weekly npm downloads': '1',
+        },
+        pkg: 'react',
+      });
+    });
+  });
+
   describe(`makeNpmStats`, () => {
+    afterEach(() => jest.restoreAllMocks());
+
     it(`should have version`, () => {
       const bundlephobiaData = {
         version: 1,
@@ -34,7 +99,7 @@ describe(`api`, () => {
       };
       const npmDownloadData = {};
 
-      const spy = jest
+      jest
         .spyOn(util, 'formatNumber')
         .mockImplementation(R.pipe(R.toString, R.concat(R.__, '_formatted')));
       const { dependencies } = api.makeNpmStats({
@@ -42,8 +107,6 @@ describe(`api`, () => {
         npmDownloadData,
       });
       expect(dependencies).toEqual('1_formatted');
-
-      spy.mockRestore();
     });
 
     it(`should have gzip size`, () => {
@@ -71,7 +134,7 @@ describe(`api`, () => {
         downloads: 100,
       };
 
-      const spy = jest
+      jest
         .spyOn(util, 'formatNumber')
         .mockImplementation(R.pipe(R.toString, R.concat(R.__, '_formatted')));
       const weeklyNpmDownloads = R.prop(
@@ -79,8 +142,6 @@ describe(`api`, () => {
         api.makeNpmStats({ bundlephobiaData, npmDownloadData }),
       );
       expect(weeklyNpmDownloads).toEqual('100_formatted');
-
-      spy.mockRestore();
     });
   });
 

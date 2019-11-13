@@ -4,4 +4,6 @@ node_modules
 # Webstorm
 .idea
 
+coverage/
+
 variables.env
