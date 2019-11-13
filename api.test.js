@@ -10,7 +10,10 @@ describe(`api`, () => {
       };
       const npmDownloadData = {};
 
-      const { version } = api.makeNpmStats({ bundlephobiaData, npmDownloadData });
+      const { version } = api.makeNpmStats({
+        bundlephobiaData,
+        npmDownloadData,
+      });
       expect(version).toEqual(1);
     });
 
@@ -18,7 +21,10 @@ describe(`api`, () => {
       const bundlephobiaData = {};
       const npmDownloadData = {};
 
-      const { version } = api.makeNpmStats({ bundlephobiaData, npmDownloadData });
+      const { version } = api.makeNpmStats({
+        bundlephobiaData,
+        npmDownloadData,
+      });
       expect(version).toEqual('--');
     });
 
@@ -28,13 +34,13 @@ describe(`api`, () => {
       };
       const npmDownloadData = {};
 
-      const spy = jest.spyOn(util, 'formatNumber').mockImplementation(
-        R.pipe(
-          R.toString,
-          R.concat(R.__, '_formatted')
-        )
-      );
-      const { dependencies } = api.makeNpmStats({ bundlephobiaData, npmDownloadData });
+      const spy = jest
+        .spyOn(util, 'formatNumber')
+        .mockImplementation(R.pipe(R.toString, R.concat(R.__, '_formatted')));
+      const { dependencies } = api.makeNpmStats({
+        bundlephobiaData,
+        npmDownloadData,
+      });
       expect(dependencies).toEqual('1_formatted');
 
       spy.mockRestore();
@@ -46,11 +52,16 @@ describe(`api`, () => {
       };
       const npmDownloadData = {};
 
-      jest.spyOn(util, 'formatSize').mockImplementation(R.always({
-        size: '10.33',
-        unit: 'kB',
-      }));
-      const gzipSize = R.prop('gzip size', api.makeNpmStats({ bundlephobiaData, npmDownloadData }));
+      jest.spyOn(util, 'formatSize').mockImplementation(
+        R.always({
+          size: '10.33',
+          unit: 'kB',
+        }),
+      );
+      const gzipSize = R.prop(
+        'gzip size',
+        api.makeNpmStats({ bundlephobiaData, npmDownloadData }),
+      );
       expect(gzipSize).toEqual('10.3 kB');
     });
 
@@ -60,13 +71,13 @@ describe(`api`, () => {
         downloads: 100,
       };
 
-      const spy = jest.spyOn(util, 'formatNumber').mockImplementation(
-        R.pipe(
-          R.toString,
-          R.concat(R.__, '_formatted')
-        )
+      const spy = jest
+        .spyOn(util, 'formatNumber')
+        .mockImplementation(R.pipe(R.toString, R.concat(R.__, '_formatted')));
+      const weeklyNpmDownloads = R.prop(
+        'weekly npm downloads',
+        api.makeNpmStats({ bundlephobiaData, npmDownloadData }),
       );
-      const weeklyNpmDownloads = R.prop('weekly npm downloads', api.makeNpmStats({ bundlephobiaData, npmDownloadData }));
       expect(weeklyNpmDownloads).toEqual('100_formatted');
 
       spy.mockRestore();
