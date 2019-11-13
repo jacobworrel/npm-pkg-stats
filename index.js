@@ -13,7 +13,7 @@ const { getStats } = require('./api');
  * - add support for multiple packages (ie. comparison mode)
  */
 
-const [ package ] = R.drop(2, process.argv);
+const [ pkg ] = R.drop(2, process.argv);
 const token = process.env.NPM_PKG_STATS_TOKEN;
 
 console.log(chalk.magenta(figlet.textSync('npm pkg stats', { font: 'Big' })));
@@ -25,6 +25,6 @@ const spinner = ora({
 
 spinner.start();
 
-getStats(package, token)
+getStats(pkg, token)
 .then(() => spinner.stop())
 .catch(err => console.error(err));

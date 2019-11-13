@@ -4,17 +4,12 @@ const parseRepoUrl = require('parse-github-url');
 const R = require('ramda');
 const Table = require('cli-table');
 const { GraphQLClient } = require('graphql-request');
-const {
-  calcRatio,
-  formatNumber,
-  formatPercentage,
-  formatSize,
-} = require('./util');
+const util = require('./util');
 
 const nilValue = '--';
 
-const makeQuery = (package, owner) => `{
-  repository(name: "${package}", owner: "${owner}"){
+const makeQuery = (pkg, owner) => `{
+  repository(name: "${pkg}", owner: "${owner}"){
     openIssues: issues(filterBy: { states: [OPEN]}) {
       totalCount
     }
@@ -52,7 +47,7 @@ const makeQuery = (package, owner) => `{
 function makeVerticalTable ({
   githubStats,
   npmStats,
-  package,
+  pkg,
 }) {
   const stats = {
     ...npmStats,
@@ -62,7 +57,7 @@ function makeVerticalTable ({
     style: {
       head: ['magenta'],
     },
-    head: ['package', package],
+    head: ['package', pkg],
   });
   const rows = R.pipe(
     R.keys,
@@ -74,11 +69,6 @@ function makeVerticalTable ({
 }
 
 function makeNpmStats ({ bundlephobiaData, npmDownloadData }) {
-  const weeklyNpmDownloads = R.pipe(
-    R.prop('downloads'),
-    formatNumber
-  )(npmDownloadData);
-
   return {
     version: R.pipe(
       R.prop('version'),
@@ -86,7 +76,7 @@ function makeNpmStats ({ bundlephobiaData, npmDownloadData }) {
     )(bundlephobiaData),
     dependencies: R.pipe(
       R.prop('dependencyCount'),
-      formatNumber
+      util.formatNumber
     )(bundlephobiaData),
     'gzip size': R.pipe(
       R.prop('gzip'),
@@ -94,12 +84,15 @@ function makeNpmStats ({ bundlephobiaData, npmDownloadData }) {
         R.isNil,
         R.always(nilValue),
         R.pipe(
-          formatSize,
+          util.formatSize,
           ({ size, unit }) => `${parseFloat(size).toFixed(1)} ${unit}`
         )
       )
     )(bundlephobiaData),
-    'weekly npm downloads': weeklyNpmDownloads,
+    'weekly npm downloads': R.pipe(
+      R.prop('downloads'),
+      util.formatNumber
+    )(npmDownloadData),
   };
 }
 
@@ -112,14 +105,14 @@ function makeGithubStats ({ githubData }) {
   return {
     'github stars': R.pipe(
       R.path(['repository', 'stargazers', 'totalCount']),
-      formatNumber
+      util.formatNumber
     )(githubData),
-    'open PRs': formatNumber(openPRs),
-    'open PRs (% of total)': formatPercentage(calcRatio(openPRs, closedPRs)),
-    'closed PRs': formatNumber(closedPRs),
-    'open issues': formatNumber(openIssues),
-    'open issues (% of total)': formatPercentage(calcRatio(openIssues, closedIssues)),
-    'closed issues': formatNumber(closedIssues),
+    'open PRs': util.formatNumber(openPRs),
+    'open PRs (% of total)': util.formatPercentage(util.calcRatio(openPRs, closedPRs)),
+    'closed PRs': util.formatNumber(closedPRs),
+    'open issues': util.formatNumber(openIssues),
+    'open issues (% of total)': util.formatPercentage(util.calcRatio(openIssues, closedIssues)),
+    'closed issues': util.formatNumber(closedIssues),
     'last release': R.pipe(
       R.path(['repository', 'releases', 'nodes']),
       R.head,
@@ -133,23 +126,23 @@ function makeGithubStats ({ githubData }) {
   };
 }
 
-async function getStats (package, token) {
+async function getStats (pkg, token) {
   if (R.isNil(token)) {
     console.error('No NPM_PKG_STATS_TOKEN found in your environment variables. Please follow the installation instructions.');
     return;
   }
 
   const [ bundlephobiaData, npmDownloadData ] = await Promise.all([
-    fetchBundlephobiaData(package),
-    fetchNpmDownload(package),
+    fetchBundlephobiaData(pkg),
+    fetchNpmDownload(pkg),
   ]);
 
   const npmStats = makeNpmStats({ bundlephobiaData, npmDownloadData });
 
-  const repoUrl = await getRepoUrl(package);
+  const repoUrl = await getRepoUrl(pkg);
   if (R.isNil(repoUrl)) {
     console.warn(`Requested package has no repository url in package.json so we were unable to gather stats from GitHub.`);
-    console.log(makeVerticalTable({ npmStats, package }).toString());
+    console.log(makeVerticalTable({ npmStats, pkg }).toString());
     return;
   }
 
@@ -166,28 +159,29 @@ async function getStats (package, token) {
   const githubStats = makeGithubStats({ githubData });
 
   console.log('\n');
-  console.log(makeVerticalTable({ npmStats, githubStats, package }).toString());
+  console.log(makeVerticalTable({ npmStats, githubStats, pkg }).toString());
 }
 
-async function fetchGithubData (package, owner, token) {
+async function fetchGithubData (pkg, owner, token) {
   const graphQLClient = new GraphQLClient('https://api.github.com/graphql', {
     headers: {
       authorization: `Bearer ${token}`,
     },
   });
-  return await graphQLClient.request(makeQuery(package, owner));
+  return await graphQLClient.request(makeQuery(pkg, owner));
 }
 
-async function fetchBundlephobiaData (package) {
-  const resp = await fetch(`https://bundlephobia.com/api/size?package=${package}`);
+async function fetchBundlephobiaData (pkg) {
+  const resp = await fetch(`https://bundlephobia.com/api/size?package=${pkg}`);
   return await resp.json();
 }
 
-async function fetchNpmDownload (package) {
-  const resp = await fetch(`https://api.npmjs.org/downloads/point/last-week/${package}`);
+async function fetchNpmDownload (pkg) {
+  const resp = await fetch(`https://api.npmjs.org/downloads/point/last-week/${pkg}`);
   return await resp.json();
 }
 
 module.exports = {
   getStats,
+  makeNpmStats,
 };
