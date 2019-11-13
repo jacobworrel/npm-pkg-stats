@@ -5,6 +5,7 @@
   "description": "A CLI tool that gets stats on NPM packages.",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint . --ext .js",
     "test": "jest",
     "test:watch": "jest --watchAll",
     "start": "node index.js"
@@ -27,6 +28,9 @@
     "ramda": "^0.26.1"
   },
   "devDependencies": {
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-plugin-prettier": "^3.1.1",
     "jest": "^24.9.0",
     "prettier": "1.19.1"
   },
