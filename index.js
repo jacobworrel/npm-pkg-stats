@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const api = require('./api');
 const chalk = require('chalk');
 const figlet = require('figlet');
 const ora = require('ora');
@@ -25,5 +26,14 @@ const spinner = ora({
 spinner.start();
 
 getStats(pkg, token)
-  .then(() => spinner.stop())
-  .catch(err => console.error(err));
+  .then(({ npmStats, githubStats }) => {
+    console.log('\n');
+    console.log(
+      api.makeVerticalTable({ npmStats, githubStats, pkg }).toString(),
+    );
+    spinner.stop();
+  })
+  .catch(err => {
+    console.error(err);
+    spinner.stop();
+  });

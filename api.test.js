@@ -6,15 +6,13 @@ describe(`api`, () => {
   describe(`getStats`, () => {
     afterEach(() => jest.restoreAllMocks());
 
-    it(`should log error msg to console when token is nil`, async () => {
-      const spy = jest
-        .spyOn(global.console, 'error')
-        .mockImplementation(() => {});
-      await api.getStats('react');
-
-      expect(spy).toHaveBeenCalledWith(
-        'No NPM_PKG_STATS_TOKEN found in your environment variables. Please follow the installation instructions.',
-      );
+    it(`should throw error msg token is nil`, async () => {
+      expect.assertions(1);
+      try {
+        await api.getStats('react');
+      } catch (err) {
+        expect(err).toBeDefined();
+      }
     });
 
     it(`should only log npm stats when no repository url exists in package.json`, async () => {
@@ -42,26 +40,18 @@ describe(`api`, () => {
         .spyOn(global.console, 'warn')
         .mockImplementation(() => {});
 
-      const consoleLog = jest
-        .spyOn(global.console, 'log')
-        .mockImplementation(() => {});
-
-      const makeVerticalTable = jest.spyOn(api, 'makeVerticalTable');
-
-      await api.getStats('react', 'token');
+      const result = await api.getStats('react', 'token');
 
       expect(consoleWarn).toHaveBeenCalledWith(
         'Requested package has no repository url in package.json so we were unable to gather stats from GitHub.',
       );
-      expect(consoleLog).toHaveBeenCalledTimes(1);
-      expect(makeVerticalTable).toHaveBeenCalledWith({
+      expect(result).toEqual({
         npmStats: {
           dependencies: '1',
           'gzip size': '1.0 B',
           version: 1,
           'weekly npm downloads': '1',
         },
-        pkg: 'react',
       });
     });
 
@@ -118,16 +108,9 @@ describe(`api`, () => {
 
       jest.spyOn(util, 'formatDate').mockImplementation(R.always('mock_date'));
 
-      const consoleLog = jest
-        .spyOn(global.console, 'log')
-        .mockImplementation(() => {});
+      const result = await api.getStats('react', 'token');
 
-      const makeVerticalTable = jest.spyOn(api, 'makeVerticalTable');
-
-      await api.getStats('react', 'token');
-
-      expect(consoleLog).toHaveBeenCalledTimes(2);
-      expect(makeVerticalTable).toHaveBeenCalledWith({
+      expect(result).toEqual({
         npmStats: {
           dependencies: '1',
           'gzip size': '1.0 B',
@@ -145,7 +128,6 @@ describe(`api`, () => {
           'open issues': '1',
           'open issues (% of total)': '50.00%',
         },
-        pkg: 'react',
       });
     });
   });

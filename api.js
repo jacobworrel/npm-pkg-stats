@@ -146,17 +146,15 @@ api.makeGithubStats = function makeGithubStats({ githubData = {} }) {
 
 api.getStats = async function getStats(pkg, token) {
   if (R.isNil(token)) {
-    console.error(
-      'No NPM_PKG_STATS_TOKEN found in your environment variables. Please follow the installation instructions.',
+    throw new Error(
+      'No NPM_PKG_STATS_TOKEN found in your environment variables. Please follow the installation instructions: https://github.com/jacobworrel/npm-pkg-stats#installation--usage.',
     );
-    return;
   }
 
   const [bundlephobiaData, npmDownloadData] = await Promise.all([
     api.fetchBundlephobiaData(pkg),
     api.fetchNpmDownload(pkg),
   ]);
-
   const npmStats = api.makeNpmStats({ bundlephobiaData, npmDownloadData });
 
   const repoUrl = await api.getRepoUrl(pkg);
@@ -164,18 +162,19 @@ api.getStats = async function getStats(pkg, token) {
     console.warn(
       `Requested package has no repository url in package.json so we were unable to gather stats from GitHub.`,
     );
-    console.log(api.makeVerticalTable({ npmStats, pkg }).toString());
-    return;
+    return {
+      npmStats,
+    };
   }
 
   const { owner, name: githubPackageName } = api.makeOwnerAndPkgNameBy(repoUrl);
-
   const githubData = await api.fetchGithubData(githubPackageName, owner, token);
-
   const githubStats = api.makeGithubStats({ githubData });
 
-  console.log('\n');
-  console.log(api.makeVerticalTable({ npmStats, githubStats, pkg }).toString());
+  return {
+    npmStats,
+    githubStats,
+  };
 };
 
 api.fetchGithubData = async function fetchGithubData(pkg, owner, token) {
