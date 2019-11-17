@@ -64,6 +64,90 @@ describe(`api`, () => {
         pkg: 'react',
       });
     });
+
+    it(`should log npm and github stats repository url exists in package.json`, async () => {
+      const bundlephobiaData = {
+        version: 1,
+        dependencyCount: 1,
+        gzip: 1,
+      };
+
+      jest
+        .spyOn(api, 'fetchBundlephobiaData')
+        .mockImplementation(R.always(bundlephobiaData));
+
+      const npmDownloadData = {
+        downloads: 1,
+      };
+      jest
+        .spyOn(api, 'fetchNpmDownload')
+        .mockImplementation(R.always(npmDownloadData));
+
+      jest
+        .spyOn(api, 'getRepoUrl')
+        .mockImplementation(R.always('https://github.com/facebook/react.git'));
+
+      const githubData = {
+        repository: {
+          stargazers: {
+            totalCount: 1,
+          },
+          openIssues: {
+            totalCount: 1,
+          },
+          openPRs: {
+            totalCount: 1,
+          },
+          closedIssues: {
+            totalCount: 1,
+          },
+          closedPRs: {
+            totalCount: 1,
+          },
+          releases: {
+            nodes: [{ publishedAt: Date.now() }],
+          },
+          licenseInfo: {
+            name: 'MIT',
+          },
+        },
+      };
+      jest
+        .spyOn(api, 'fetchGithubData')
+        .mockImplementation(R.always(githubData));
+
+      jest.spyOn(util, 'formatDate').mockImplementation(R.always('mock_date'));
+
+      const consoleLog = jest
+        .spyOn(global.console, 'log')
+        .mockImplementation(() => {});
+
+      const makeVerticalTable = jest.spyOn(api, 'makeVerticalTable');
+
+      await api.getStats('react', 'token');
+
+      expect(consoleLog).toHaveBeenCalledTimes(2);
+      expect(makeVerticalTable).toHaveBeenCalledWith({
+        npmStats: {
+          dependencies: '1',
+          'gzip size': '1.0 B',
+          version: 1,
+          'weekly npm downloads': '1',
+        },
+        githubStats: {
+          'closed PRs': '1',
+          'closed issues': '1',
+          'github stars': '1',
+          'last release': 'mock_date',
+          license: 'MIT',
+          'open PRs': '1',
+          'open PRs (% of total)': '50.00%',
+          'open issues': '1',
+          'open issues (% of total)': '50.00%',
+        },
+        pkg: 'react',
+      });
+    });
   });
 
   describe(`makeNpmStats`, () => {

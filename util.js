@@ -1,9 +1,14 @@
+const dayjs = require('dayjs');
 const numeral = require('numeral');
 const R = require('ramda');
 
 function calcRatio(open, closed) {
   const total = R.add(open, closed);
   return open / total;
+}
+
+function formatDate(date) {
+  return dayjs(date).format('YYYY-MM-DD');
 }
 
 function formatNumber(x) {
@@ -32,6 +37,7 @@ function formatSize(value) {
 }
 
 module.exports = {
+  formatDate,
   formatNumber,
   formatPercentage,
   calcRatio,

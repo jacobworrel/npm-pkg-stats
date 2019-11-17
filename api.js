@@ -1,6 +1,5 @@
-const dayjs = require('dayjs');
 const getRepoUrl = require('get-repository-url');
-const parseRepoUrl = require('parse-github-url');
+const parseGithubUrl = require('parse-github-url');
 const R = require('ramda');
 const Table = require('cli-table');
 const { GraphQLClient } = require('graphql-request');
@@ -11,6 +10,7 @@ const nilValue = '--';
 const api = {};
 
 api.getRepoUrl = async pkg => await getRepoUrl(pkg);
+api.makeOwnerAndPkgNameBy = R.pipe(parseGithubUrl, R.pick(['owner', 'name']));
 
 api.makeQuery = (pkg, owner) => `{
   repository(name: "${pkg}", owner: "${owner}"){
@@ -100,7 +100,7 @@ api.makeNpmStats = function makeNpmStats({
   };
 };
 
-api.makeGithubStats = function makeGithubStats({ githubData }) {
+api.makeGithubStats = function makeGithubStats({ githubData = {} }) {
   const openIssues = R.path(
     ['repository', 'openIssues', 'totalCount'],
     githubData,
@@ -132,9 +132,10 @@ api.makeGithubStats = function makeGithubStats({ githubData }) {
     'closed issues': util.formatNumber(closedIssues),
     'last release': R.pipe(
       R.path(['repository', 'releases', 'nodes']),
+      R.defaultTo([]),
       R.head,
       R.prop('publishedAt'),
-      date => dayjs(date).format('YYYY-MM-DD'),
+      util.formatDate,
     )(githubData),
     license: R.pipe(
       R.path(['repository', 'licenseInfo', 'name']),
@@ -167,10 +168,7 @@ api.getStats = async function getStats(pkg, token) {
     return;
   }
 
-  const { owner, name: githubPackageName } = R.pipe(
-    parseRepoUrl,
-    R.pick(['owner', 'name']),
-  )(repoUrl);
+  const { owner, name: githubPackageName } = api.makeOwnerAndPkgNameBy(repoUrl);
 
   const githubData = await api.fetchGithubData(githubPackageName, owner, token);
 
