@@ -9,7 +9,7 @@ describe(`api`, () => {
     it(`should throw error msg token is nil`, async () => {
       expect.assertions(1);
       try {
-        await api.getStats('react');
+        await api.getStats(undefined, 'react');
       } catch (err) {
         expect(err).toBeDefined();
       }
@@ -40,18 +40,17 @@ describe(`api`, () => {
         .spyOn(global.console, 'warn')
         .mockImplementation(() => {});
 
-      const result = await api.getStats('react', 'token');
+      const result = await api.getStats('token', 'react');
 
       expect(consoleWarn).toHaveBeenCalledWith(
-        'Requested package has no repository url in package.json so we were unable to gather stats from GitHub.',
+        'Requested package "react" has no repository url in package.json so we were unable to gather stats from GitHub.',
       );
       expect(result).toEqual({
-        npmStats: {
-          dependencies: '1',
-          'gzip size': '1.0 B',
-          version: 1,
-          'weekly npm downloads': '1',
-        },
+        pkg: 'react',
+        dependencies: '1',
+        'gzip size': '1.0 B',
+        version: 1,
+        'weekly npm downloads': '1',
       });
     });
 
@@ -108,26 +107,23 @@ describe(`api`, () => {
 
       jest.spyOn(util, 'formatDate').mockImplementation(R.always('mock_date'));
 
-      const result = await api.getStats('react', 'token');
+      const result = await api.getStats('token', 'react');
 
       expect(result).toEqual({
-        npmStats: {
-          dependencies: '1',
-          'gzip size': '1.0 B',
-          version: 1,
-          'weekly npm downloads': '1',
-        },
-        githubStats: {
-          'closed PRs': '1',
-          'closed issues': '1',
-          'github stars': '1',
-          'last release': 'mock_date',
-          license: 'MIT',
-          'open PRs': '1',
-          'open PRs (% of total)': '50.00%',
-          'open issues': '1',
-          'open issues (% of total)': '50.00%',
-        },
+        pkg: 'react',
+        dependencies: '1',
+        'gzip size': '1.0 B',
+        version: 1,
+        'weekly npm downloads': '1',
+        'closed PRs': '1',
+        'closed issues': '1',
+        'github stars': '1',
+        'last release': 'mock_date',
+        license: 'MIT',
+        'open PRs': '1',
+        'open PRs (% of total)': '50.00%',
+        'open issues': '1',
+        'open issues (% of total)': '50.00%',
       });
     });
   });

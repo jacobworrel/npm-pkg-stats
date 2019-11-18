@@ -5,11 +5,12 @@ const Table = require('cli-table');
 const { GraphQLClient } = require('graphql-request');
 const util = require('./util');
 
-const nilValue = '--';
-
 const api = {};
 
+api.nilValue = '--';
+
 api.getRepoUrl = async pkg => await getRepoUrl(pkg);
+
 api.makeOwnerAndPkgNameBy = R.pipe(parseGithubUrl, R.pick(['owner', 'name']));
 
 api.makeQuery = (pkg, owner) => `{
@@ -48,19 +49,13 @@ api.makeQuery = (pkg, owner) => `{
   }
 }`;
 
-api.makeVerticalTable = function makeVerticalTable({
-  githubStats,
-  npmStats,
-  pkg,
-}) {
-  const stats = {
-    ...npmStats,
-    ...githubStats,
-  };
+const tableStyle = {
+  head: ['magenta'],
+};
+
+api.makeVerticalTable = function makeVerticalTable({ pkg, ...stats }) {
   const table = new Table({
-    style: {
-      head: ['magenta'],
-    },
+    style: tableStyle,
     head: ['package', pkg],
   });
   const rows = R.pipe(
@@ -72,12 +67,28 @@ api.makeVerticalTable = function makeVerticalTable({
   return table;
 };
 
+api.makeHorizontalTable = function makeHorizontalTable({
+  labelList,
+  valueList,
+}) {
+  const table = new Table({
+    style: tableStyle,
+    head: labelList,
+  });
+  table.push(...valueList);
+
+  return table;
+};
+
 api.makeNpmStats = function makeNpmStats({
   bundlephobiaData,
   npmDownloadData,
 }) {
   return {
-    version: R.pipe(R.prop('version'), R.defaultTo(nilValue))(bundlephobiaData),
+    version: R.pipe(
+      R.prop('version'),
+      R.defaultTo(api.nilValue),
+    )(bundlephobiaData),
     dependencies: R.pipe(
       R.prop('dependencyCount'),
       util.formatNumber,
@@ -86,7 +97,7 @@ api.makeNpmStats = function makeNpmStats({
       R.prop('gzip'),
       R.ifElse(
         R.isNil,
-        R.always(nilValue),
+        R.always(api.nilValue),
         R.pipe(
           util.formatSize,
           ({ size, unit }) => `${parseFloat(size).toFixed(1)} ${unit}`,
@@ -139,12 +150,12 @@ api.makeGithubStats = function makeGithubStats({ githubData = {} }) {
     )(githubData),
     license: R.pipe(
       R.path(['repository', 'licenseInfo', 'name']),
-      R.defaultTo(nilValue),
+      R.defaultTo(api.nilValue),
     )(githubData),
   };
 };
 
-api.getStats = async function getStats(pkg, token) {
+api.getStats = R.curry(async function getStats(token, pkg) {
   if (R.isNil(token)) {
     throw new Error(
       'No NPM_PKG_STATS_TOKEN found in your environment variables. Please follow the installation instructions: https://github.com/jacobworrel/npm-pkg-stats#installation--usage.',
@@ -160,10 +171,11 @@ api.getStats = async function getStats(pkg, token) {
   const repoUrl = await api.getRepoUrl(pkg);
   if (R.isNil(repoUrl)) {
     console.warn(
-      `Requested package has no repository url in package.json so we were unable to gather stats from GitHub.`,
+      `Requested package "${pkg}" has no repository url in package.json so we were unable to gather stats from GitHub.`,
     );
     return {
-      npmStats,
+      pkg,
+      ...npmStats,
     };
   }
 
@@ -172,10 +184,11 @@ api.getStats = async function getStats(pkg, token) {
   const githubStats = api.makeGithubStats({ githubData });
 
   return {
-    npmStats,
-    githubStats,
+    pkg,
+    ...npmStats,
+    ...githubStats,
   };
-};
+});
 
 api.fetchGithubData = async function fetchGithubData(pkg, owner, token) {
   const graphQLClient = new GraphQLClient('https://api.github.com/graphql', {
