@@ -36,10 +36,15 @@ function formatSize(value) {
   return { unit, size };
 }
 
+const fillWith = R.curry((defaultValue, length, list) =>
+  R.times(idx => R.defaultTo(defaultValue, list[idx]), length),
+);
+
 module.exports = {
+  calcRatio,
+  fillWith,
   formatDate,
   formatNumber,
   formatPercentage,
-  calcRatio,
   formatSize,
 };
